@@ -2,24 +2,29 @@
 FROM mariadb:10.6.14
 MAINTAINER Mingze Li "limingze610@163.com"
 
-# 设置阿里源
-RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
-    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+# 设置清华源
+RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
+
+RUN echo 'deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse\n\
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse\n\
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse\n\
+deb http://security.ubuntu.com/ubuntu/ focal-security main restricted universe multiverse\n\
+' > /etc/apt/sources.list
 
 # 安装所需软件
-RUN apt-get update && apt-get install -y \
-    iputils-ping \
-    net-tools \
-    vim \
-    wget \
-    curl \
-    openssh-server \
-    git \
-    lsof \
-    python3 \
-    python3-pip
+RUN apt-get update -y
+RUN apt-get install -y iputils-ping
+RUN apt-get install -y net-tools
+RUN apt-get install -y vim
+RUN apt-get install -y wget
+RUN apt-get install -y curl
+RUN apt-get install -y openssh-server
+RUN apt-get install -y git
+RUN apt-get install -y lsof
+RUN apt-get install -y python3
+RUN apt-get install -y python3-pip
 
-# 设置pip源为中国源
+# 设置pip源为清华源
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 # 安装 supervisor
 RUN pip3 install supervisor
@@ -47,5 +52,6 @@ RUN echo '[supervisord]' > /etc/supervisor/conf.d/sshd.conf && \
     echo 'autorestart=true' >> /etc/supervisor/conf.d/mariadb.conf && \
     echo 'startretries=3' >> /etc/supervisor/conf.d/mariadb.conf
 
-# 设置容器入口为supervisord
-CMD ["/usr/bin/supervisord"]
+# 设置容器启动时执行的命令
+# 运行supervisor
+ENTRYPOINT ["supervisord", "-n"]

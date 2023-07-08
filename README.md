@@ -1,1 +1,14 @@
-images
+## images list
+- go FROM ubuntu:22.04
+  - user:
+    - root:password
+    - joe:joe
+  - openssh-server enable
+  - python3 enable
+  - supervisor enable
+- mariadb FROM mariadb:10.6.14
+  - user:
+    - root:password
+  - openssh-server enable
+  - python3 enable
+  - supervisor enable
