@@ -1,16 +1,13 @@
-# Version: 0.4
 FROM ubuntu:22.04
 MAINTAINER Mingze Li "limingze610@163.com"
 
 ARG user=joe
 ARG git_username="limingze"
 ARG git_useremail="limingze610@gmail.com"
+ENV TZ Asia/Shanghai
 
-RUN echo 'deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse\n\
-deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse\n\
-deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse\n\
-deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse\n\
-' > /etc/apt/sources.list
+RUN mv /etc/apt/sources.list /etc/apt/sources.list.bak
+COPY sources/sources.list /etc/apt/sources.list
 
 RUN apt-get update -y
 RUN apt-get install -y iputils-ping
@@ -28,58 +25,23 @@ RUN apt-get install -y python3-pip
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 # 安装 supervisor
 RUN pip3 install supervisor
-RUN mkdir -p /etc/supervisor/logs
+ARG supervisor_dir=/etc/supervisor/conf.d
+RUN mkdir -p ${supervisor_dir}
+
+# supervisor 配置文件
+RUN echo_supervisord_conf > /etc/supervisor/supervisord.conf
+RUN sed -i 's|;\[include\]|[include]|' /etc/supervisor/supervisord.conf
+RUN sed -i 's|;files = relative/directory/\*\.ini|files = /etc/supervisor/conf.d/\*.ini|' /etc/supervisor/supervisord.conf
+
+
+COPY supervisor/sshd.ini ${supervisor_dir}/sshd.ini
+COPY supervisor/app.ini ${supervisor_dir}/app.ini.example
 
 # 开启 SSH 登录，并设置开机自启(对于容器内的 SSH 服务，在 Docker 容器中实现开机自启是不太适用的，因为容器在运行时并没有真正的开机过程)
 RUN mkdir /var/run/sshd
 RUN echo 'root:password' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
-
-# supervisor 配置文件
-RUN mkdir -p /etc/supervisor/conf.d
-RUN echo_supervisord_conf > /etc/supervisor/supervisord.conf
-RUN echo '[include]\n\
-files = /etc/supervisor/conf.d/*.conf\n\
-' >> /etc/supervisor/supervisord.conf
-
-RUN echo '[supervisord]' > /etc/supervisor/conf.d/sshd.conf && \
-    echo 'nodaemon=true' >> /etc/supervisor/conf.d/sshd.conf && \
-    echo '[program:sshd]' >> /etc/supervisor/conf.d/sshd.conf && \
-    echo 'command=/usr/sbin/sshd -D' >> /etc/supervisor/conf.d/sshd.conf
-
-
-RUN mkdir -p /home/${user}/app
-
-RUN echo '[supervisord]\n\
-nodaemon=true\n\
-[program:app]\n\
-command=/home/joe/app/app\n\
-directory=/home/joe/app\n\
-user=apps\n\
-startsecs=5\n\
-autorestart=true\n\
-priority=999\n\
-stdout_logfile=/etc/supervisor/logs/supervisor.log\n\
-stderr_logfile=/etc/supervisor/logs/supervisor.err\n\
-stdout_logfile_maxbytes=200MB\n\
-stderr_logfile_maxbytes=200MB\n\
-stdout_logfile_backups=20\n\
-stderr_logfile_backups=20\n\
-' > /etc/supervisor/conf.d/app.conf.example
-
-
-#sudo supervisorctl reread
-#sudo supervisorctl update
-#sudo supervisorctl start myapp     # 启动进程
-#sudo supervisorctl stop myapp      # 停止进程
-#sudo supervisorctl restart myapp   # 重启进程
-#sudo supervisorctl status myapp    # 查看进程状态
-#default commands (type help <topic>):
-#=====================================
-#add    exit      open  reload  restart   start   tail
-#avail  fg        pid   remove  shutdown  status  update
-#clear  maintail  quit  reread  signal    stop    version
 
 # 创建一个新的用户(用户名和密码均是joe)，并赋予sudo执行权限
 RUN useradd -m joe && echo "${user}:joe" | chpasswd && adduser ${user} sudo
@@ -91,8 +53,6 @@ RUN wget -O go.tar.gz https://studygolang.com/dl/golang/go1.19.10.linux-amd64.ta
 RUN tar -zxf go.tar.gz -C /usr/local/
 RUN ln -sv /usr/local/go/bin/go /bin
 RUN rm -f /home/${user}/go.tar.gz
-
-ENV TZ Asia/Shanghai
 ENV GOPROXY https://goproxy.cn,direct
 ENV GO111MODULE on
 ENV GOROOT /usr/local/go
