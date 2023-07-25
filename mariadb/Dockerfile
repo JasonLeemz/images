@@ -4,8 +4,11 @@ MAINTAINER Mingze Li "limingze610@163.com"
 ENV TZ Asia/Shanghai
 
 # 设置清华源
-RUN mv /etc/apt/sources.list /etc/apt/sources.list.bak
-COPY sources/sources.list /etc/apt/sources.list
+RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
+COPY sources/sources.list.amd64 /etc/apt/sources.list.amd64
+COPY sources/sources.list.arm64 /etc/apt/sources.list.arm64
+RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
+RUN sed -i 's/ports.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 
 # 安装所需软件
 RUN apt-get update -y
