@@ -11,7 +11,7 @@ RUN echo "Acquire::http::Pipeline-Depth \"0\";" > /etc/apt/apt.conf.d/99nopipeli
 COPY sources/sources.list.amd64 /etc/apt/sources.list
 
 # 安装所需软件
-RUN apt-get update -y
+RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install -y iputils-ping
 RUN apt-get install -y net-tools
 RUN apt-get install -y vim

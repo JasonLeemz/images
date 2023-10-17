@@ -36,34 +36,13 @@ RUN touch ${supervisor_log_dir}/supervisor.log
 RUN touch ${supervisor_log_dir}/supervisor.err
 
 COPY supervisor/sshd.ini ${supervisor_dir}/sshd.ini
-COPY supervisor/app.ini ${supervisor_dir}/app.ini.example
+COPY supervisor/mongo.ini ${supervisor_dir}/mongo.ini
 
 # 开启 SSH 登录，并设置开机自启(对于容器内的 SSH 服务，在 Docker 容器中实现开机自启是不太适用的，因为容器在运行时并没有真正的开机过程)
 RUN mkdir /var/run/sshd
 RUN echo 'root:password' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
-
-# 创建一个新的用户(用户名和密码均是workspace)，并赋予sudo执行权限
-ARG user=workspace
-ARG workspace=/home/workspace
-RUN useradd -m workspace && echo "workspace:workspace" | chpasswd && adduser workspace sudo
-
-# 设置工作目录
-WORKDIR ${workspace}
-# ADD https://studygolang.com/dl/golang/go1.19.10.linux-amd64.tar.gz /usr/local/
-
-RUN wget -O go.tar.gz https://studygolang.com/dl/golang/go1.19.10.linux-amd64.tar.gz
-RUN tar -zxf go.tar.gz -C /usr/local/
-RUN ln -sv /usr/local/go/bin/go /bin
-RUN rm -f /home/workspace/go.tar.gz
-RUN go env -w GOPROXY=https://goproxy.cn,direct
-RUN go env -w GO111MODULE=on
-RUN go env -w GOROOT=/usr/local/go
-RUN go env -w CGO_ENABLED=1
-ARG gopath=/home/${user}/go
-RUN mkdir -p ${gopath}
-RUN go env -w GOPATH=${gopath}
 
 # 生成 SSH 密钥
 RUN mkdir -p /root/.ssh && \

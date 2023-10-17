@@ -11,7 +11,7 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/source
 RUN sed -i 's/ports.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 
 # 安装所需软件
-RUN apt-get update -y
+RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install -y iputils-ping
 RUN apt-get install -y net-tools
 RUN apt-get install -y vim
