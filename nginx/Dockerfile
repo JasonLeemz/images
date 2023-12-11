@@ -1,50 +1,40 @@
-FROM nginx:stable
+FROM nginx:stable-alpine
 MAINTAINER Mingze Li "limingze610@163.com"
 
 ENV TZ Asia/Shanghai
-ENV PS1=$(whoami)@$(hostname):$(pwd)\$
-ENV TERM=xterm
 
 # 设置清华源
-RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
-RUN echo "Acquire::http::Pipeline-Depth \"0\";" > /etc/apt/apt.conf.d/99nopipelining
-COPY sources/sources.list.amd64 /etc/apt/sources.list
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 
 # 安装所需软件
-RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y iputils-ping
-RUN apt-get install -y net-tools
-RUN apt-get install -y vim
-RUN apt-get install -y wget
-RUN apt-get install -y curl
-RUN apt-get install -y openssh-server
-RUN apt-get install -y git
-RUN apt-get install -y lsof
-RUN apt-get install -y python3
-RUN apt-get install -y python3-pip
+RUN apk update
+RUN apk add vim
+RUN apk add wget
+RUN apk add curl
+RUN apk add openssl
+RUN apk add netcat-openbsd
+RUN apk add bc
+RUN apk add git
+RUN apk add bash
+RUN apk add certbot
+RUN apk add ca-certificates
+RUN apk add libressl
+RUN apk add certbot-nginx
 
-# 设置pip源为清华源
-ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-# 安装 supervisor
-RUN pip3 install supervisor
+# nginx.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+RUN mkdir /etc/nginx/include
+COPY nginx/include/* /etc/nginx/include
+# stream配置文件
+RUN mkdir /etc/nginx/tcp.d
+COPY nginx/nginx.stream.tpl.conf /etc/nginx/tcp.d/nginx.stream.tpl
+# http配置文件
+COPY nginx/nginx.http.tpl.conf /etc/nginx/conf.d/nginx.http.tpl
+COPY nginx/nginx.https.tpl.conf /etc/nginx/conf.d/nginx.https.tpl
 
-ARG supervisor_dir=/etc/supervisor/conf.d
-RUN mkdir -p ${supervisor_dir}
-
-# supervisor 配置文件
-RUN echo_supervisord_conf > /etc/supervisor/supervisord.conf
-RUN sed -i 's|;\[include\]|[include]|' /etc/supervisor/supervisord.conf
-RUN sed -i 's|;files = relative/directory/\*\.ini|files = /etc/supervisor/conf.d/\*.ini|' /etc/supervisor/supervisord.conf
-
-COPY supervisor/sshd.ini ${supervisor_dir}/sshd.ini
-COPY supervisor/nginx.ini ${supervisor_dir}/nginx.ini
-
-# 开启 SSH 登录
-RUN mkdir /var/run/sshd
-RUN echo 'root:password' | chpasswd
-RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN sed -i 's/UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+# 暴露SSH和HTTP端口
+EXPOSE 22 80
 
 # 设置容器启动时执行的命令
 # 运行supervisor
-ENTRYPOINT ["supervisord", "-n"]
+ENTRYPOINT ["nginx", "-g","daemon off;"]

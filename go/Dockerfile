@@ -9,6 +9,7 @@ COPY sources/sources.list.amd64 /etc/apt/sources.list
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install -y iputils-ping
 RUN apt-get install -y net-tools
+RUN apt-get install -y duf # 可替代df https://github.com/muesli/duf
 RUN apt-get install -y vim
 RUN apt-get install -y wget
 RUN apt-get install -y curl
@@ -33,7 +34,7 @@ RUN echo_supervisord_conf > /etc/supervisor/supervisord.conf
 RUN sed -i 's|;\[include\]|[include]|' /etc/supervisor/supervisord.conf
 RUN sed -i 's|;files = relative/directory/\*\.ini|files = /etc/supervisor/conf.d/\*.ini|' /etc/supervisor/supervisord.conf
 RUN touch ${supervisor_log_dir}/supervisor.log
-RUN touch ${supervisor_log_dir}/supervisor.err
+RUN touch ${supervisor_log_dir}/supervisor.errors
 
 COPY supervisor/sshd.ini ${supervisor_dir}/sshd.ini
 COPY supervisor/app.ini ${supervisor_dir}/app.ini.example

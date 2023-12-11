@@ -33,7 +33,7 @@ RUN echo_supervisord_conf > /etc/supervisor/supervisord.conf
 RUN sed -i 's|;\[include\]|[include]|' /etc/supervisor/supervisord.conf
 RUN sed -i 's|;files = relative/directory/\*\.ini|files = /etc/supervisor/conf.d/\*.ini|' /etc/supervisor/supervisord.conf
 RUN touch ${supervisor_log_dir}/supervisor.log
-RUN touch ${supervisor_log_dir}/supervisor.err
+RUN touch ${supervisor_log_dir}/supervisor.errors
 
 COPY supervisor/sshd.ini ${supervisor_dir}/sshd.ini
 COPY supervisor/mongo.ini ${supervisor_dir}/mongo.ini
