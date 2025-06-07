@@ -1,0 +1,10 @@
+openai-whisper==20231117
+beautifulsoup4==4.12.3
+pyhtml2pdf==0.0.7
+PyMuPDF==1.24.9
+filetype==1.2.0
+pandas[excel]==2.2.2
+pysubs2==1.7.3
+gradio_client==1.4.0
+ffmpeg-python==0.2.0
+tos==2.7.1
