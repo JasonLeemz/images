@@ -1,0 +1,9 @@
+cssutils==2.11.1
+ujson==5.10.0
+tenacity==9.0.0
+urlfetch==2.0.1
+onnx==1.17.0
+onnxconverter-common==1.14.0
+playwright==1.49.1
+chromium==0.0.0
+elevenlabs==1.50.3

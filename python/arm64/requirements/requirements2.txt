@@ -1,0 +1,10 @@
+opencv-python==4.10.0.84
+snownlp==0.12.3
+librosa==0.10.2.post1
+openai==1.61.1
+numpy==1.26.4
+requests~=2.31.0
+gunicorn==22.0.0
+matplotlib==3.9.0
+redis==5.0.4
+cairosvg

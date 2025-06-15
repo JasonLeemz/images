@@ -1,0 +1,9 @@
+pyglet==2.0.dev23
+arcade==2.6.17
+pygame==2.6.0
+imageio-ffmpeg==0.5.1
+funasr==1.1.6
+modelscope==1.17.1
+nacos-sdk-python==1.0.0
+contextvars==2.4
+send2trash

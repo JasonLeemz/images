@@ -1,0 +1,4 @@
+torch~=2.3.0
+torchsde~=0.2.6
+torchvision~=0.18.0
+torchaudio~=2.3.0
